@@ -1,0 +1,695 @@
+/* ============================================================================
+   样式表目录
+   ----------------------------------------------------------------------------
+   1. 通用重置与变量（:root 主题变量 + 暗色模式预留）
+   2. 基础排版与布局容器
+   3. 页头（品牌 + 导航）
+   4. 首屏 Hero + 计费切换
+   5. 套餐卡片
+   6. 功能对比矩阵
+   7. 常见问题 FAQ（手风琴）
+   8. 底部 CTA 横幅
+   9. 页脚
+   10. 响应式断点（640px 平板 / 1024px 桌面）
+   11. 可访问性（减弱动画偏好）
+   ========================================================================== */
+
+/* ========================================
+   1. 通用重置与变量
+   ======================================== */
+
+/* 通用重置：消除浏览器默认外边距、统一盒模型 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* 让 width 包含 padding 与 border，布局更可控 */
+  margin: 0;
+  padding: 0;
+}
+
+/* 根变量：所有主题相关的「颜色 / 字体 / 间距 / 圆角 / 阴影」集中于此。
+   改主题只需修改下面的变量，无需改动任何具体样式规则。 */
+:root {
+  /* ---- 颜色 ---- */
+  --color-primary: #2563eb;        /* 主品牌色：按钮、高亮标签、强调边框 */
+  --color-primary-dark: #1d4ed8;   /* 主色按下/悬停时的加深态 */
+  --color-primary-soft: #eff4ff;   /* 主色的浅色背景：徽章、表头高亮 */
+  --color-bg: #f7f8fa;             /* 页面整体背景（浅灰，衬托白色卡片） */
+  --color-surface: #ffffff;        /* 卡片/面板背景（纯白） */
+  --color-text: #1f2937;           /* 主文字色（深灰，非纯黑更柔和） */
+  --color-text-muted: #6b7280;     /* 次要文字（说明、副标题） */
+  --color-border: #e5e7eb;         /* 描边/分隔线颜色 */
+  --color-success: #16a34a;        /* 「支持」✓ 的绿色 */
+  --color-muted-weak: #c0c4cc;     /* 「不支持」✗ 的弱化灰 */
+
+  /* ---- 字体 ---- */
+  --font-base: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-size-base: 16px;          /* 基准字号 */
+  --font-size-sm: 14px;            /* 次要信息 */
+  --font-size-lg: 18px;            /* 卡片价格 */
+  --font-size-xl: 24px;            /* 区块标题 */
+  --font-size-2xl: 36px;           /* 首屏大标题 */
+
+  /* ---- 间距刻度（4 的倍数，保持节奏统一）---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ---- 圆角 ---- */
+  --radius-sm: 6px;                /* 小元素（徽章、按钮） */
+  --radius-md: 10px;              /* 中等元素（列表项） */
+  --radius-card: 16px;            /* 卡片大圆角 */
+
+  /* ---- 阴影（柔和、克制）---- */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
+  --shadow-card: 0 8px 30px rgba(16, 24, 40, 0.10);
+
+  /* ---- 布局 ---- */
+  --container-max: 1200px;         /* 内容最大宽度 */
+  --header-height: 64px;
+}
+
+/* 暗色模式预留：当前未做运行时切换，但变量已就绪。
+   后续只需在 main.js 中给 <html> 设置 data-theme="dark" 即可启用。 */
+[data-theme='dark'] {
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-primary-soft: #1e293b;
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #e5e7eb;
+  --color-text-muted: #94a3b8;
+  --color-border: #334155;
+  --color-success: #4ade80;
+  --color-muted-weak: #475569;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   2. 基础排版与布局容器
+   ======================================== */
+
+/* 页面整体：背景色 + 基础字体 + 平滑字体渲染 */
+body {
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased; /* macOS 更细腻的字型抗锯齿 */
+}
+
+/* 内容容器：限制最大宽度并水平居中，左右留白防止贴边 */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding-left: var(--space-5);
+  padding-right: var(--space-5);
+}
+
+/* 窄容器：FAQ 等文字较多的区块用更窄宽度提升可读性 */
+.container--narrow {
+  max-width: 760px;
+}
+
+/* 区块通用间距：上下留白形成呼吸感 */
+.section {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+/* 区块标题与副标题 */
+.section__title {
+  font-size: var(--font-size-xl);
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.section__subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+
+/* ========================================
+   3. 页头（品牌 + 导航）
+   ======================================== */
+
+/* 固定页头：半透明背景 + 毛玻璃，滚动时内容不被遮挡 */
+.header {
+  position: sticky; /* 吸顶，导航始终可见 */
+  top: 0;
+  z-index: 50;
+  height: var(--header-height);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 页头内布局：左右两端对齐（品牌在左、导航在右） */
+.header__inner {
+  height: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+  display: flex;
+  align-items: center;            /* 垂直居中 */
+  justify-content: space-between; /* 品牌与导航分居两端 */
+}
+
+/* 品牌：Logo + 名称横向排列 */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+}
+
+.brand__logo {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* 导航：链接横向排列，间距一致 */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.nav__link {
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  transition: color 0.2s ease; /* 悬停时颜色平滑过渡 */
+}
+
+.nav__link:hover {
+  color: var(--color-primary); /* 悬停高亮为主色 */
+}
+
+/* ========================================
+   4. 首屏 Hero + 计费切换
+   ======================================== */
+
+/* 首屏：上大下小的纵向排列，文字居中 */
+.hero {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-7);
+  text-align: center;
+}
+
+.hero__title {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.5px; /* 大标题字距收紧更精致 */
+}
+
+.hero__subtitle {
+  color: var(--color-text-muted);
+  max-width: 640px;
+  margin: 0 auto var(--space-6); /* 下方留出与切换控件的间距 */
+}
+
+/* 计费切换：两段式按钮组 + 节省徽章 */
+.billing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;          /* 胶囊形 */
+  padding: var(--space-1);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 单个计费选项按钮 */
+.billing-toggle__option {
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  padding: var(--space-2) var(--space-5);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 激活态：填充主色背景 + 白字 */
+.billing-toggle__option.is-active {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+/* 节省提示小徽章（仅在年付按钮内显示） */
+.billing-toggle__save {
+  font-size: 12px;
+  background-color: rgba(255, 255, 255, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ========================================
+   5. 套餐卡片
+   ======================================== */
+
+/* 卡片网格：用 Flex  Wrap + 居中对齐，方便「套餐不足 4 个时整体居中」。
+   移动端每卡占满一行（纵向堆叠）。 */
+.plans-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;  /* 数量不足时整体居中 */
+  gap: var(--space-5);
+}
+
+/* 单卡基础宽度：移动端满宽 */
+.plan-card {
+  flex: 1 1 100%;            /* 默认占满一行（移动端纵向堆叠） */
+  max-width: 360px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;   /* 内部元素纵向排列 */
+  box-shadow: var(--shadow-sm);
+  position: relative;       /* 为「最受欢迎」徽章提供定位上下文 */
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* 悬浮浮动效果：轻微上移 + 阴影加深 */
+.plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+
+/* 最受欢迎卡片：主色边框 + 浅色渐变背景，视觉突出 */
+.plan-card--popular {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  background: linear-gradient(180deg, var(--color-primary-soft) 0%, var(--color-surface) 40%);
+  box-shadow: var(--shadow-md);
+}
+
+/* 「最受欢迎」徽章：贴在卡片顶部居中 */
+.plan-card__badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%); /* 水平居中定位的经典写法 */
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: var(--space-1) var(--space-4);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.plan-card__name {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-2);
+}
+
+.plan-card__desc {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  min-height: 42px;          /* 多卡描述行数不一也能对齐 */
+  margin-bottom: var(--space-4);
+}
+
+/* 价格区：原价（划线）/现价/后缀/节省提示 的纵向排布 */
+.plan-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;     /* 基线对齐，金额与周期在同一水平线 */
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+/* 现价金额：大字号、加粗 */
+.plan-price__amount {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* 原价（划线）：仅在年付时显示 */
+.plan-price__original {
+  width: 100%;               /* 单独占一行，置于金额上方 */
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: line-through; /* 划线表示原价 */
+}
+
+/* 价格后缀（如「起」「定制」） */
+.plan-price__suffix {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* 节省提示（年付时显示） */
+.plan-price__save {
+  font-size: 12px;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+/* 卖点列表 */
+.plan-card__features {
+  list-style: none;          /* 去掉默认圆点 */
+  margin-bottom: var(--space-5);
+  flex-grow: 1;              /* 撑开，使各卡按钮底部对齐 */
+}
+
+.plan-card__feature {
+  position: relative;
+  padding-left: var(--space-5); /* 给自定义对勾留出空间 */
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* 用伪元素画一个对勾，替代 list-style */
+.plan-card__feature::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* CTA 按钮：占满卡片宽度、主色填充 */
+.plan-card__cta {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.plan-card__cta:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* 按下时的轻微回弹反馈 */
+.plan-card__cta:active {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   6. 功能对比矩阵
+   ======================================== */
+
+/* 横向滚动容器：移动端表格过宽时可左右滑动查看 */
+.compare-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* iOS 顺滑惯性滚动 */
+}
+
+/* 对比表：最小宽度保证列不被过度压缩，从而触发横向滚动 */
+.compare-table {
+  width: 100%;
+  min-width: 640px;          /* 窄屏下强制最小宽度，避免挤成一团 */
+  border-collapse: collapse; /* 合并边框，线条更干净 */
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* 单元格通用内边距与分隔线 */
+.compare-table th,
+.compare-table td {
+  padding: var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 首列（功能名）左对齐，作为行标题 */
+.compare-table__feature-col,
+.compare-table__feature {
+  text-align: left;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* 表头套餐列 */
+.compare-table__plan-col {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+/* 最受欢迎套餐对应的列：浅色高亮 */
+.compare-table__plan-col.is-popular,
+.compare-table__value.is-popular {
+  background-color: var(--color-primary-soft);
+}
+
+/* 类别分组行：浅灰背景 + 加粗，区隔不同模块 */
+.compare-table__group td {
+  background-color: var(--color-bg);
+  font-weight: 700;
+  text-align: left;
+  color: var(--color-text);
+}
+
+/* 行 hover 轻微高亮，便于横向对照 */
+.compare-table__row:hover td {
+  background-color: rgba(37, 99, 235, 0.04);
+}
+
+/* 「支持」✓ 绿色、「不支持」✗ 弱化灰 */
+.compare-table__value.is-yes {
+  color: var(--color-success);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.compare-table__value.is-no {
+  color: var(--color-muted-weak);
+  font-size: 18px;
+}
+
+/* ========================================
+   7. 常见问题 FAQ（手风琴）
+   ======================================== */
+
+/* FAQ 列表：纵向堆叠，项与项之间留间隔 */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 单个 FAQ 项：白色卡片容器 */
+.faq-item {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;          /* 配合 max-height 折叠，避免内容溢出圆角 */
+}
+
+/* 问题按钮：整行可点，左文右箭头 */
+.faq-item__question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 文字与箭头分居两端 */
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 箭头图标：展开时旋转 180° 形成「展开/收起」视觉反馈 */
+.faq-item__icon {
+  transition: transform 0.3s ease;
+  font-size: 18px;
+  color: var(--color-text-muted);
+}
+
+.faq-item.is-open .faq-item__icon {
+  transform: rotate(180deg);
+}
+
+/* 答案容器：用 max-height 过渡实现平滑动画（height:auto 无法过渡） */
+.faq-item__answer {
+  max-height: 0;             /* 折叠态：高度为 0 */
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+/* 展开态：给一个足够大的最大高度，露出全部内容 */
+.faq-item.is-open .faq-item__answer {
+  max-height: 400px;
+}
+
+/* 答案内文：内边距放在内层，避免折叠时残留留白 */
+.faq-item__answer-inner {
+  padding: 0 var(--space-5) var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ========================================
+   8. 底部 CTA 横幅
+   ======================================== */
+
+/* CTA 容器：主色渐变背景 + 居中文字，形成视觉收尾 */
+.cta {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #fff;
+  text-align: center;
+  padding: var(--space-8) var(--space-5);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+.cta__title {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-3);
+}
+
+.cta__desc {
+  max-width: 560px;
+  margin: 0 auto var(--space-5);
+  opacity: 0.92;
+}
+
+/* CTA 按钮：白底主色字，与渐变背景形成对比 */
+.cta__button {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #fff;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.cta__button:hover {
+  opacity: 0.92;
+}
+
+.cta__button:active {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   9. 页脚
+   ======================================== */
+
+/* 页脚：上边框分隔，浅灰背景 */
+.footer {
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  padding: var(--space-6) 0;
+  margin-top: var(--space-8);
+}
+
+/* 页脚内：版权在上、链接在下，居中排列 */
+.footer__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+  text-align: center;
+}
+
+.footer__copy {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-3);
+}
+
+/* 页脚链接：横向排列、居中对齐 */
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.footer__link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: color 0.2s ease;
+}
+
+.footer__link:hover {
+  color: var(--color-primary);
+}
+
+/* ========================================
+   10. 响应式断点
+   ======================================== */
+
+/* ---- 平板：≥ 640px ----
+   卡片变为两列（每卡约 50% 宽）。Flex wrap + 居中已自动处理对齐。 */
+@media (min-width: 640px) {
+  .plan-card {
+    flex: 0 1 calc(50% - var(--space-5)); /* 两列：减去 gap 的一半 */
+    max-width: none;
+  }
+
+  /* 首屏标题在较大屏上略放大 */
+  .hero__title {
+    font-size: 40px;
+  }
+}
+
+/* ---- 桌面：≥ 1024px ----
+   卡片变为四列（每卡约 25% 宽）。若套餐不足 4 个，justify-content:center 自动居中。 */
+@media (min-width: 1024px) {
+  .plan-card {
+    flex: 0 1 calc(25% - var(--space-5)); /* 四列：减去 gap */
+  }
+
+  .hero__title {
+    font-size: 48px;
+  }
+
+  .section__title {
+    font-size: 28px;
+  }
+}
+
+/* ========================================
+   11. 可访问性：减弱动画偏好
+   ======================================== */
+
+/* 当用户系统开启「减少动态效果」时，关闭过渡与变换，避免眩晕 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+   index.html —— 页面骨架（仅作容器与资源引用）
+  ============================================================================
+   设计要点：
+     - 本文件不含任何具体文案/价格/套餐数据，所有内容由 js/main.js 读取
+       js/config.js 后动态生成。这样做到「数据驱动」：改 config.js 即可改页面。
+     - 每个语义区块上方用分隔注释标明用途，便于初学者定位。
+     - 仅引用本地 css/style.css 与两个本地 js 文件，零外部依赖（无 CDN）。
+-->
+<html lang="zh-CN">
+  <head>
+    <!-- 字符集：UTF-8 确保中文与符号（✓/✗/¥）正确显示 -->
+    <meta charset="UTF-8" />
+
+    <!-- 视口：移动优先响应式的基础，禁止默认缩放以适配设备宽度 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- 页面标题与描述（SEO 基础） -->
+    <title>定价方案 · 云协作 CloudFlow</title>
+    <meta name="description" content="云协作 CloudFlow 的 SaaS 产品定价方案，支持月付/年付切换与功能对比。" />
+
+    <!-- 引入本地样式表（全部样式集中于此，含主题 CSS 变量） -->
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body id="top">
+    <!-- ========== 页头：品牌 + 导航 ========== -->
+    <!-- 内容由 main.js 的 renderHeader() 动态填充 -->
+    <header id="site-header" class="header"></header>
+
+    <main>
+      <!-- ========== 首屏标题区 + 计费切换 ========== -->
+      <!-- 大标题、副标题与「月付/年付」切换开关在此渲染 -->
+      <section id="pricing" class="hero">
+        <div class="container" id="hero"><!-- renderHero() 填充 --></div>
+      </section>
+
+      <!-- ========== 套餐卡片区 ========== -->
+      <!-- 所有套餐卡片由 main.js 的 renderPlans() 生成 -->
+      <section class="section plans-section">
+        <div class="container">
+          <div id="plans-container" class="plans-grid"><!-- 套餐卡片容器 --></div>
+        </div>
+      </section>
+
+      <!-- ========== 功能对比矩阵 ========== -->
+      <!-- 对比表由 main.js 的 renderCompareTable() 生成；外层提供横向滚动 -->
+      <section id="compare" class="section compare-section">
+        <div class="container">
+          <h2 class="section__title">功能对比</h2>
+          <p class="section__subtitle">逐项查看各套餐的能力差异，找到最契合你的方案。</p>
+          <div id="compare-container"><!-- 对比表容器 --></div>
+        </div>
+      </section>
+
+      <!-- ========== 常见问题 FAQ ========== -->
+      <!-- 手风琴效果由 main.js 的 renderFaqs() 生成并绑定 -->
+      <section id="faq" class="section faq-section">
+        <div class="container container--narrow">
+          <h2 class="section__title">常见问题</h2>
+          <div id="faq-container" class="faq-list"><!-- FAQ 容器 --></div>
+        </div>
+      </section>
+
+      <!-- ========== 底部 CTA 横幅 ========== -->
+      <!-- 行动号召横幅由 main.js 的 renderCtaAndFooter() 生成 -->
+      <section class="section cta-section">
+        <div class="container">
+          <div id="cta-banner" class="cta"><!-- CTA 容器 --></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ========== 页脚 ========== -->
+    <!-- 版权与链接由 main.js 的 renderCtaAndFooter() 填充 -->
+    <footer id="site-footer" class="footer"></footer>
+
+    <!--
+      脚本引入顺序很重要：
+        1. config.js 必须先加载，定义全局 PRICING_DATA；
+        2. main.js 后加载，读取 PRICING_DATA 完成渲染。
+      放在 </body> 前（而非 <head>）可保证执行时 DOM 容器已存在。
+    -->
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
