@@ -28,18 +28,24 @@
  * @type {{
  *   theme: string,
  *   language: string,
+ *   hero: { badge: string, title: string, subtitle: string, titleAccent: string },
  *   brand: { name: string, logo: string },
  *   nav: Array<{ label: string, href: string }>,
  *   billing: { monthlyLabel: string, yearlyLabel: string, discountRate: number, savingText: string },
  *   plans: Array<{
  *     id: string, name: string, price: number, currency: string, period: string,
- *     description: string, features: string[], ctaText: string, ctaLink: string,
- *     popular: boolean, priceSuffix: string
+ *     description: string, features: string[], meta: string,
+ *     ctaText: string, ctaLink: string, popular: boolean, priceSuffix: string
  *   }>,
  *   features: { categories: Array<{ name: string, items: Array<{ name: string, values: string[] }> }> },
  *   faqs: Array<{ question: string, answer: string, defaultOpen: boolean }>,
- *   cta: { title: string, description: string, buttonText: string, buttonLink: string },
- *   footer: { copyright: string, links: Array<{ label: string, href: string }> }
+ *   cta: { title: string, description: string, buttonText: string, buttonLink: string, secondaryText: string, secondaryLink: string },
+ *   footer: {
+ *     copyright: string, tagline: string,
+ *     columns: Array<{ title: string, links: Array<{ label: string, href: string }> }>,
+ *     socials: Array<{ icon: string, label: string, href: string }>,
+ *     links: Array<{ label: string, href: string }>
+ *   }
  * }}
  *
  * @example
@@ -71,6 +77,40 @@ const PRICING_DATA = {
    * @example "zh-CN" | "en-US"
    */
   language: 'zh-CN',
+
+  /* ------------------------------------------------------------------ */
+  /* ①-b 首屏 Hero 文案（数据驱动，便于统一修改）                        */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * 首屏标题区文案。之所以放在配置里，是为了贯彻「只改 config.js」的原则：
+   * 大标题、副标题、营销小标签都集中在此，无需改动 main.js / index.html。
+   * @type {{ badge: string, title: string, subtitle: string, titleAccent: string }}
+   * @example {
+   *   badge: "简单透明，按需扩展",
+   *   title: "选择最适合团队的方案",
+   *   titleAccent: "方案",            // 仅此词使用渐变色高亮
+   *   subtitle: "从个人起步到企业级部署……"
+   * }
+   */
+  hero: {
+    /** 营销小标签（标题上方的胶囊徽章，带绿点） @type {string} @example "简单透明，按需扩展" */
+    badge: '简单透明，按需扩展',
+
+    /** 主标题 @type {string} @example "选择适合你的方案" */
+    title: '选择适合你的协作方案',
+
+    /**
+     * 主标题中需要做「渐变高亮」的关键词。
+     * main.js 会在标题里找到该词并包成渐变样式；留空则整体不高亮。
+     * @type {string}
+     * @example "协作"
+     */
+    titleAccent: '协作',
+
+    /** 副标题（引导性说明文案） @type {string} @example "从个人起步到企业级部署……" */
+    subtitle: '从个人起步到企业级部署，灵活定价，按需扩展。所有套餐均支持随时升级，无隐藏费用。',
+  },
 
   /* ------------------------------------------------------------------ */
   /* ② 品牌信息                                                          */
@@ -170,6 +210,7 @@ const PRICING_DATA = {
    *   period: string,        // 计费周期文案，如 "/月"
    *   description: string,   // 一句亮点描述
    *   features: string[],    // 卡片上展示的核心卖点（简短列表）
+   *   meta: string,          // 关键指标速览（如 "不限项目 · 20 成员"），显示在价格下方；留空则不显示
    *   ctaText: string,       // 按钮文案
    *   ctaLink: string,       // 按钮链接（可用 "#" 占位，或真实注册/购买地址）
    *   popular: boolean,      // 是否为「最受欢迎」套餐（决定是否显示徽章与高亮）
@@ -191,6 +232,7 @@ const PRICING_DATA = {
       currency: '¥',
       period: '/月',
       description: '适合个人体验与小型项目起步，永久免费。',
+      meta: '3 个项目 · 1 名成员 · 5 GB 存储',
       features: ['1 名团队成员', '5 GB 文件存储', '3 个项目', '基础任务看板'],
       ctaText: '免费开始',
       ctaLink: '#',
@@ -204,6 +246,7 @@ const PRICING_DATA = {
       currency: '¥',
       period: '/月',
       description: '为独立开发者与自由职业者提供完整能力。',
+      meta: '20 个项目 · 5 名成员 · 50 GB 存储',
       features: ['5 名团队成员', '50 GB 文件存储', '20 个项目', '实时协作编辑', 'API 调用 1万/月'],
       ctaText: '立即升级',
       ctaLink: '#',
@@ -217,6 +260,7 @@ const PRICING_DATA = {
       currency: '¥',
       period: '/月',
       description: '面向成长型团队，权限管理与协作一步到位。',
+      meta: '不限项目 · 20 名成员 · 500 GB 存储',
       features: [
         '20 名团队成员',
         '500 GB 文件存储',
@@ -237,6 +281,7 @@ const PRICING_DATA = {
       currency: '¥',
       period: '/月',
       description: '为大型组织提供安全合规与专属服务。',
+      meta: '不限项目 · 不限成员 · 不限存储',
       features: [
         '不限团队成员',
         '不限文件存储',
@@ -376,14 +421,21 @@ const PRICING_DATA = {
 
   /**
    * 页面底部的行动号召（Call To Action）横幅。
-   * @type {{ title: string, description: string, buttonText: string, buttonLink: string }}
-   * @example { title: "准备好了吗？", description: "...", buttonText: "免费试用", buttonLink: "#" }
+   * 可选 secondaryText / secondaryLink：配置后会出现第二个「描边」按钮（如「预约演示」）。
+   * @type {{ title: string, description: string, buttonText: string, buttonLink: string, secondaryText: string, secondaryLink: string }}
+   * @example {
+   *   title: "准备好了吗？", description: "...",
+   *   buttonText: "免费试用", buttonLink: "#",
+   *   secondaryText: "预约演示", secondaryLink: "#"
+   * }
    */
   cta: {
     title: '准备好让团队协作更高效了吗？',
     description: '立即创建免费账户，14 天内可体验团队版全部功能，无需绑定信用卡。',
     buttonText: '免费开始使用',
     buttonLink: '#',
+    secondaryText: '预约产品演示',
+    secondaryLink: '#',
   },
 
   /* ------------------------------------------------------------------ */
@@ -391,17 +443,68 @@ const PRICING_DATA = {
   /* ------------------------------------------------------------------ */
 
   /**
-   * 页脚信息。copyright 为版权文案；links 为页脚链接数组。
-   * @type {{ copyright: string, links: Array<{ label: string, href: string }> }}
-   * @example { copyright: "© 2026 云协作", links: [ { label: "隐私政策", href: "#" } ] }
+   * 页脚信息。采用「品牌简介 + 多链接列 + 社交图标 + 法律链接」的标准 SaaS 布局。
+   *  - copyright：版权文案（底部条左侧）
+   *  - tagline：品牌一句话简介（品牌区下方）
+   *  - columns：链接分列，每列含标题与若干链接（产品 / 公司 / 支持……）
+   *  - socials：社交图标（Emoji 占位，零依赖），显示在底部条右侧
+   *  - links：最底部的法律/次要链接（可选）
+   * @type {{
+   *   copyright: string,
+   *   tagline: string,
+   *   columns: Array<{ title: string, links: Array<{ label: string, href: string }> }>,
+   *   socials: Array<{ icon: string, label: string, href: string }>,
+   *   links: Array<{ label: string, href: string }>
+   * }}
+   * @example {
+   *   copyright: "© 2026 云协作",
+   *   tagline: "为现代团队打造的协作平台。",
+   *   columns: [ { title: "产品", links: [ { label: "价格", href: "#pricing" } ] } ],
+   *   socials: [ { icon: "💬", label: "微信", href: "#" } ],
+   *   links: [ { label: "隐私政策", href: "#" } ]
+   * }
    */
   footer: {
     copyright: '© 2026 云协作 CloudFlow. 保留所有权利。',
+    tagline: '为现代团队打造的协作与项目管理平台，让每一个项目都井然有序。',
+    columns: [
+      {
+        title: '产品',
+        links: [
+          { label: '功能概览', href: '#compare' },
+          { label: '价格方案', href: '#pricing' },
+          { label: '更新日志', href: '#' },
+          { label: '集成中心', href: '#' },
+        ],
+      },
+      {
+        title: '公司',
+        links: [
+          { label: '关于我们', href: '#' },
+          { label: '招贤纳士', href: '#' },
+          { label: '联系方式', href: '#' },
+          { label: '博客', href: '#' },
+        ],
+      },
+      {
+        title: '支持',
+        links: [
+          { label: '帮助中心', href: '#faq' },
+          { label: '开发者文档', href: '#' },
+          { label: '服务状态', href: '#' },
+          { label: '隐私政策', href: '#' },
+        ],
+      },
+    ],
+    socials: [
+      { icon: '💬', label: '微信', href: '#' },
+      { icon: '🌐', label: '微博', href: '#' },
+      { icon: '✉️', label: '邮箱', href: '#' },
+    ],
     links: [
-      { label: '隐私政策', href: '#' },
       { label: '服务条款', href: '#' },
-      { label: '联系我们', href: '#' },
-      { label: '帮助中心', href: '#' },
+      { label: 'Cookie 设置', href: '#' },
+      { label: 'Site Map', href: '#' },
     ],
   },
 };

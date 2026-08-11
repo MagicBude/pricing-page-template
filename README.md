@@ -11,7 +11,12 @@
 - **教科书级注释**：每个文件均带完整中文注释，适合初学者学习与二次开发。
 - **移动优先响应式**：640px（平板）、1024px（桌面）两档断点，套餐卡片自动 1/2/4 列布局。
 - **月付 / 年付切换**：一键切换计费方式，价格自动按折扣系数重算并展示「原价划线 + 节省提示」。
-- **FAQ 手风琴**：平滑展开/收起，互斥折叠。
+- **首屏营销标签 + 渐变标题**：可配置的 Hero 胶囊标签，以及标题关键词渐变高亮（均为数据驱动）。
+- **套餐关键指标速览**：每张卡片价格下方展示「不限项目 · 20 成员 · 500 GB 存储」等一行速览（`plan.meta`）。
+- **对比矩阵增强**：表头联动显示各套餐价格（随计费切换）、表头吸顶与首列吸左（移动端横向滚动时功能名与表头始终可见）。
+- **多列页脚 + 社交图标**：标准 SaaS 页脚布局，含品牌简介、多个链接列与社交入口。
+- **CTA 双按钮**：主按钮 + 可选次按钮（如「预约演示」），纯 CSS 装饰光斑提升视觉层次。
+- **FAQ 手风琴**：平滑展开/收起，互斥折叠，`+` / `×` 图标反馈。
 - **主题可换肤**：`style.css` 中集中管理 CSS 变量，改一处即可整体换色；暗色模式变量已预留。
 - **扩展预留**：`config.js` 中含 `theme`、`language` 字段，方便后续做主题切换与多语言。
 
@@ -67,6 +72,10 @@ pricing-template/
 | --- | --- | --- |
 | `theme` | `string` | 主题模式预留（`light`/`dark`），当前未实现切换。 |
 | `language` | `string` | 界面语言预留（`zh-CN` 等），方便后续多语言。 |
+| `hero.badge` | `string` | 首屏标题上方的营销小标签（胶囊徽章）。 |
+| `hero.title` | `string` | 首屏主标题。 |
+| `hero.titleAccent` | `string` | 主标题中要做渐变高亮的关键词；留空则不高亮。 |
+| `hero.subtitle` | `string` | 首屏副标题。 |
 | `brand.name` | `string` | 品牌名称，显示在导航栏。 |
 | `brand.logo` | `string` | Logo 占位：可填 Emoji（如 `☁️`）或文字（如 `CF`）。 |
 | `nav` | `Array<{label, href}>` | 顶部导航菜单，顺序即展示顺序，`href` 指向区块 id。 |
@@ -77,9 +86,12 @@ pricing-template/
 | `plans` | `Array` | 套餐列表，见下表。 |
 | `features.categories` | `Array` | 对比矩阵分组，每组含 `name` 与 `items`。 |
 | `faqs` | `Array<{question, answer, defaultOpen}>` | 常见问题；`answer` 支持 HTML。 |
-| `cta` | `{title, description, buttonText, buttonLink}` | 底部行动号召横幅。 |
-| `footer.copyright` | `string` | 版权文案。 |
-| `footer.links` | `Array<{label, href}>` | 页脚链接。 |
+| `cta` | `{title, description, buttonText, buttonLink, secondaryText, secondaryLink}` | 底部行动号召横幅；后两个为可选次按钮。 |
+| `footer.copyright` | `string` | 版权文案（底部条左侧）。 |
+| `footer.tagline` | `string` | 品牌一句话简介（品牌区下方）。 |
+| `footer.columns` | `Array<{title, links}>` | 页脚链接列，每列含标题与若干链接。 |
+| `footer.socials` | `Array<{icon, label, href}>` | 社交图标（Emoji 占位），底部条右侧。 |
+| `footer.links` | `Array<{label, href}>` | 最底部的法律/次要链接（可选）。 |
 
 ### `plans` 数组每一项
 
@@ -92,6 +104,8 @@ pricing-template/
 | `period` | `string` | 计费周期文案，如 `/月`。 |
 | `description` | `string` | 一句亮点描述。 |
 | `features` | `string[]` | 卡片上展示的核心卖点。 |
+| `meta` | `string` | 关键指标速览（如 `不限项目 · 20 成员`）；显示在价格下方，留空 `''` 不显示。允许用 `<b>` 强调数字。 |
+| `ctaText` | `string` | 按钮文案。 |
 | `ctaText` | `string` | 按钮文案。 |
 | `ctaLink` | `string` | 按钮链接（`#` 占位或真实地址）。 |
 | `popular` | `boolean` | 是否「最受欢迎」（显示徽章 + 高亮）。 |
@@ -156,6 +170,49 @@ billing: {
   savingText: '省 25%', // 提示文案同步改
 },
 ```
+
+### 5. 自定义首屏文案
+
+```js
+hero: {
+  badge: '限时优惠 · 新用户立减',   // 标题上方营销小标签
+  title: '选择适合你的协作方案',
+  titleAccent: '协作',               // 仅该词以渐变色高亮
+  subtitle: '从个人起步到企业级部署，灵活定价，按需扩展。',
+},
+```
+
+### 6. 给卡片加「关键指标速览」
+
+在 `plans` 每一项加 `meta`（价格为下方的速览行，可用 `<b>` 强调数字）：
+
+```js
+{
+  // …其他字段…
+  meta: '<b>不限项目</b> · 20 名成员 · 500 GB 存储',
+}
+```
+
+### 7. 改造页脚（多列 + 社交）
+
+`footer.columns` 是链接分列，`footer.socials` 是社交图标，`footer.links` 是最底部法律链接：
+
+```js
+footer: {
+  copyright: '© 2026 你的公司',
+  tagline: '一句话介绍你的产品。',
+  columns: [
+    { title: '产品', links: [{ label: '价格', href: '#pricing' }, /* … */] },
+    { title: '公司', links: [{ label: '关于我们', href: '#' }] },
+  ],
+  socials: [{ icon: '💬', label: '微信', href: '#' }],
+  links: [{ label: '隐私政策', href: '#' }],
+},
+```
+
+### 8. 给 CTA 加第二个按钮
+
+配置 `cta.secondaryText` / `cta.secondaryLink` 即出现描边次按钮（如「预约演示」）；留空则不显示。
 
 ---
 

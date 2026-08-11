@@ -127,15 +127,32 @@ function renderHero() {
   const hero = document.getElementById('hero');
   if (!hero) return;
 
+  // 读取首屏配置（集中管理，贯彻「只改 config.js」原则）
+  const heroData = PRICING_DATA.hero || {};
+
+  // 营销小标签（胶囊徽章）：标题上方的一句吸引性文案，带绿色状态点
+  if (heroData.badge) {
+    hero.appendChild(createElement('span', { class: 'hero__badge' }, heroData.badge));
+  }
+
+  // 主标题：若配置了 titleAccent，则把该关键词包成「渐变高亮」span
+  const titleEl = createElement('h1', { class: 'hero__title' });
+  const title = heroData.title || '选择适合你的方案';
+  const accent = heroData.titleAccent || '';
+  if (accent && title.includes(accent)) {
+    // 用原生 DOM 拆分拼接，避免使用 innerHTML（防止把配置文本当标签解析）
+    const [before, after] = title.split(accent);
+    if (before) titleEl.appendChild(document.createTextNode(before));
+    titleEl.appendChild(createElement('span', { class: 'hero__title-accent' }, accent));
+    if (after) titleEl.appendChild(document.createTextNode(after));
+  } else {
+    titleEl.textContent = title;
+  }
+  hero.appendChild(titleEl);
+
+  // 副标题：引导性说明文案
   hero.appendChild(
-    createElement('h1', { class: 'hero__title' }, '选择适合你的方案')
-  );
-  hero.appendChild(
-    createElement(
-      'p',
-      { class: 'hero__subtitle' },
-      '从个人起步到企业级部署，灵活定价，按需扩展。所有套餐均支持随时升级。'
-    )
+    createElement('p', { class: 'hero__subtitle' }, heroData.subtitle || '')
   );
 
   // 计费切换控件：由「月付按钮」「开关」「年付按钮 + 节省标签」组成
@@ -222,10 +239,19 @@ function renderPlans() {
     priceBox.appendChild(save);
     card.appendChild(priceBox);
 
+    // 关键指标速览：价格下方的一行小字（如「不限项目 · 20 成员」）。
+    // meta 为可信的配置文本，允许用 <b> 等简单标签强调数字。
+    if (plan.meta) {
+      const meta = createElement('p', { class: 'plan-card__meta' });
+      meta.innerHTML = plan.meta;
+      card.appendChild(meta);
+    }
+
     // 把价格计算所需的原始数据挂到卡片上，切换时直接读取，避免再查配置
     card.dataset.price = String(plan.price);
     card.dataset.currency = plan.currency;
     card.dataset.period = plan.period;
+    card.dataset.suffix = plan.priceSuffix; // 用于判断「定制」类套餐不打折
 
     // 核心卖点列表
     const featureList = createElement('ul', { class: 'plan-card__features' });
@@ -275,14 +301,16 @@ function updateBillingDisplay() {
     const price = parseFloat(card.dataset.price);
     const currency = card.dataset.currency;
     const period = card.dataset.period;
+    const suffix = card.dataset.suffix || '';
 
     // 取到卡片内的价格子节点
     const amountEl = card.querySelector('.plan-price__amount');
     const originalEl = card.querySelector('.plan-price__original');
     const saveEl = card.querySelector('.plan-price__save');
 
-    // 免费版 / 0 元：不做折扣计算，直接展示，隐藏原价与节省提示
-    if (price === 0) {
+    // 免费版（price=0）与「定制」类套餐（suffix 为 "定制"）不参与折扣计算：
+    // 直接展示原价金额，隐藏原价划线提示与节省提示。
+    if (price === 0 || suffix === '定制') {
       amountEl.textContent = currency + formatPrice(price);
       originalEl.style.display = 'none';
       saveEl.style.display = 'none';
@@ -304,6 +332,19 @@ function updateBillingDisplay() {
       amountEl.textContent = currency + formatPrice(price);
       originalEl.style.display = 'none';
       saveEl.style.display = 'none';
+    }
+  });
+
+  // 同步更新对比矩阵「表头」的价格（与卡片逻辑保持一致）：
+  // 免费版与「定制」类套餐不参与折扣，仅展示原价。
+  document.querySelectorAll('.compare-table__plan-price').forEach((el) => {
+    const price = parseFloat(el.dataset.price);
+    const currency = el.dataset.currency;
+    const suffix = el.dataset.suffix || '';
+    if (isYearly && price > 0 && suffix !== '定制') {
+      el.textContent = currency + formatPrice(price * rate) + (suffix ? ' ' + suffix : '');
+    } else {
+      el.textContent = currency + formatPrice(price) + (suffix ? ' ' + suffix : '');
     }
   });
 }
@@ -359,9 +400,21 @@ function renderCompareTable() {
     // 最受欢迎的套餐在表头也加高亮类
     const th = createElement(
       'th',
-      { class: 'compare-table__plan-col' + (plan.popular ? ' is-popular' : '') },
-      plan.name
+      { class: 'compare-table__plan-col' + (plan.popular ? ' is-popular' : '') }
     );
+    // 套餐名
+    th.appendChild(createElement('div', { class: 'compare-table__plan-name' }, plan.name));
+    // 表头价格：随计费切换联动更新（data-* 由 updateBillingDisplay 读取）
+    const priceEl = createElement('div', {
+      class: 'compare-table__plan-price',
+      'data-price': String(plan.price),
+      'data-currency': plan.currency,
+      'data-period': plan.period,
+      'data-suffix': plan.priceSuffix,
+    });
+    priceEl.textContent =
+      plan.currency + formatPrice(plan.price) + (plan.priceSuffix ? ' ' + plan.priceSuffix : '');
+    th.appendChild(priceEl);
     headRow.appendChild(th);
   });
   thead.appendChild(headRow);
@@ -460,8 +513,8 @@ function renderFaqs() {
       },
       faq.question
     );
-    // 右侧指示箭头（CSS 旋转动画）
-    questionBtn.appendChild(createElement('span', { class: 'faq-item__icon', 'aria-hidden': 'true' }, '⌄'));
+    // 右侧指示图标：用「+」表示可展开，展开时 CSS 旋转 45° 变成「×」
+    questionBtn.appendChild(createElement('span', { class: 'faq-item__icon', 'aria-hidden': 'true' }, '+'));
 
     // 答案容器：外层 wrapper 负责 max-height 过渡，内层放真实内容
     const answerWrap = createElement('div', { class: 'faq-item__answer', id: answerId });
@@ -515,26 +568,83 @@ function renderCtaAndFooter() {
   if (ctaBox) {
     ctaBox.appendChild(createElement('h2', { class: 'cta__title' }, PRICING_DATA.cta.title));
     ctaBox.appendChild(createElement('p', { class: 'cta__desc' }, PRICING_DATA.cta.description));
-    ctaBox.appendChild(
+
+    // 按钮组（主按钮 + 可选次按钮，横向排列、可换行）
+    const actions = createElement('div', { class: 'cta__actions' });
+    actions.appendChild(
       createElement('a', { class: 'cta__button', href: PRICING_DATA.cta.buttonLink }, PRICING_DATA.cta.buttonText)
     );
+    // 仅在配置了 secondaryText 时渲染第二个「描边」按钮（如「预约演示」）
+    if (PRICING_DATA.cta.secondaryText) {
+      actions.appendChild(
+        createElement(
+          'a',
+          { class: 'cta__button cta__button--ghost', href: PRICING_DATA.cta.secondaryLink || '#' },
+          PRICING_DATA.cta.secondaryText
+        )
+      );
+    }
+    ctaBox.appendChild(actions);
   }
 
-  // ---- 页脚 ----
+  // ---- 页脚（品牌简介 + 多链接列 + 社交图标 + 法律链接）----
   const footer = document.getElementById('site-footer');
   if (footer) {
     const inner = createElement('div', { class: 'footer__inner' });
 
-    // 版权
-    inner.appendChild(createElement('p', { class: 'footer__copy' }, PRICING_DATA.footer.copyright));
+    // 顶部：品牌区（Logo + 名称 + 一句话简介）+ 链接列
+    const top = createElement('div', { class: 'footer__top' });
 
-    // 链接组
-    const links = createElement('div', { class: 'footer__links' });
-    PRICING_DATA.footer.links.forEach((link) => {
-      links.appendChild(createElement('a', { class: 'footer__link', href: link.href }, link.label));
+    // 品牌区
+    const brandCol = createElement('div', { class: 'footer__brand' });
+    const brand = createElement('a', { class: 'brand', href: '#top' });
+    brand.appendChild(createElement('span', { class: 'brand__logo', 'aria-hidden': 'true' }, PRICING_DATA.brand.logo));
+    brand.appendChild(createElement('span', { class: 'brand__name' }, PRICING_DATA.brand.name));
+    brandCol.appendChild(brand);
+    if (PRICING_DATA.footer.tagline) {
+      brandCol.appendChild(createElement('p', { class: 'footer__tagline' }, PRICING_DATA.footer.tagline));
+    }
+    top.appendChild(brandCol);
+
+    // 链接列：由 footer.columns 映射生成（产品 / 公司 / 支持……）
+    const cols = createElement('div', { class: 'footer__cols' });
+    (PRICING_DATA.footer.columns || []).forEach((col) => {
+      const colEl = createElement('div', { class: 'footer__col' });
+      colEl.appendChild(createElement('h4', { class: 'footer__col-title' }, col.title));
+      (col.links || []).forEach((link) => {
+        colEl.appendChild(createElement('a', { class: 'footer__link', href: link.href }, link.label));
+      });
+      cols.appendChild(colEl);
     });
+    top.appendChild(cols);
+    inner.appendChild(top);
 
-    inner.appendChild(links);
+    // 底部条：版权（左）+ 社交图标（右）
+    const bottom = createElement('div', { class: 'footer__bottom' });
+    bottom.appendChild(createElement('span', { class: 'footer__copy' }, PRICING_DATA.footer.copyright));
+
+    // 社交图标：Emoji 占位，零依赖
+    const socials = createElement('div', { class: 'footer__socials' });
+    (PRICING_DATA.footer.socials || []).forEach((s) => {
+      socials.appendChild(
+        createElement('a', { class: 'footer__social', href: s.href, title: s.label, 'aria-label': s.label }, s.icon)
+      );
+    });
+    bottom.appendChild(socials);
+    inner.appendChild(bottom);
+
+    // 法律链接（可选，最底部一行）
+    const legal = PRICING_DATA.footer.links || [];
+    if (legal.length) {
+      const legalRow = createElement('div', { class: 'footer__legal' });
+      legal.forEach((link) => {
+        legalRow.appendChild(
+          createElement('a', { class: 'footer__link footer__link--muted', href: link.href }, link.label)
+        );
+      });
+      inner.appendChild(legalRow);
+    }
+
     footer.appendChild(inner);
   }
 }
