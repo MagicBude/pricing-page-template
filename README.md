@@ -19,7 +19,8 @@
 - **FAQ 手风琴**：平滑展开/收起，互斥折叠，`+` / `×` 图标反馈。
 - **导航操作按钮**：右上角「登录」+「免费试用」实心按钮（数据驱动，可改文案/链接）。
 - **主题一键切换（亮 / 暗）**：右上角按钮即时切换，选择记入 localStorage 自动沿用；暗色变量已完整定义。
-- **扩展预留**：`config.js` 中含 `language` 字段，方便后续做多语言。
+- **双语（中 / 英）一键切换**：右上角按钮在中文/英文间切换，所有文案（套餐、对比、FAQ、页脚、区块标题）整体重渲染并记忆选择；框架文案集中于 `i18n` 字典，业务文案可用「本地化对象」写法。
+- **移动端汉堡菜单**：< 640px 时顶部导航收起为汉堡图标，点击展开全宽下拉面板，操作按钮与切换键保留在栏内。
 
 ---
 
@@ -72,28 +73,40 @@ pricing-template/
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `theme` | `string` | 初始/默认主题：`light` / `dark` / `auto`（跟随系统）。页面右上角有切换按钮，用户手动选择会记入 localStorage。 |
-| `language` | `string` | 界面语言预留（`zh-CN` 等），方便后续多语言。 |
-| `navActions` | `{loginText, loginLink, trialText, trialLink}` | 导航栏右上角操作按钮（登录 + 免费试用）；不需要可整体删去本块。 |
-| `hero.badge` | `string` | 首屏标题上方的营销小标签（胶囊徽章）。 |
-| `hero.title` | `string` | 首屏主标题。 |
-| `hero.titleAccent` | `string` | 主标题中要做渐变高亮的关键词；留空则不高亮。 |
-| `hero.subtitle` | `string` | 首屏副标题。 |
-| `brand.name` | `string` | 品牌名称，显示在导航栏。 |
+| `language` | `string` | 界面**默认**语言（`zh-CN` / `en`）。页面右上角有切换按钮，用户手动选择会记入 localStorage 覆盖此值。 |
+| `i18n` | `Object` | UI 框架文案的多语言字典（月付/年付/最受欢迎/功能/区块标题等）。键在 `main.js` 用 `t(key)` 读取；新增语言只需在此加一份。 |
+| `navActions` | `{loginText, loginLink, trialText, trialLink}` | 导航栏右上角操作按钮（登录 + 免费试用）；`loginText`/`trialText` 支持本地化对象，不需要可整体删去本块。 |
+| `hero.badge` | `(string\|Object)` | 首屏标题上方的营销小标签（胶囊徽章），支持本地化对象。 |
+| `hero.title` | `(string\|Object)` | 首屏主标题，支持本地化对象。 |
+| `hero.titleAccent` | `(string\|Object)` | 主标题中要做渐变高亮的关键词（按语言分别指定）；留空则不高亮。 |
+| `hero.subtitle` | `(string\|Object)` | 首屏副标题，支持本地化对象。 |
+| `brand.name` | `(string\|Object)` | 品牌名称，显示在导航栏，支持本地化对象。 |
 | `brand.logo` | `string` | Logo 占位：可填 Emoji（如 `☁️`）或文字（如 `CF`）。 |
-| `nav` | `Array<{label, href}>` | 顶部导航菜单，顺序即展示顺序，`href` 指向区块 id。 |
-| `billing.monthlyLabel` | `string` | 月付标签文案。 |
-| `billing.yearlyLabel` | `string` | 年付标签文案。 |
+| `nav` | `Array<{label, href}>` | 顶部导航菜单，顺序即展示顺序，`href` 指向区块 id；`label` 支持本地化对象。 |
+| `billing.monthlyLabel` | `(string\|Object)` | 月付标签文案，支持本地化对象。 |
+| `billing.yearlyLabel` | `(string\|Object)` | 年付标签文案，支持本地化对象。 |
 | `billing.discountRate` | `number` | 年付折扣系数，`0.8` = 八折。折后价 = `price × discountRate`。 |
-| `billing.savingText` | `string` | 年付时展示的「省 X%」提示。 |
-| `plans` | `Array` | 套餐列表，见下表。 |
-| `features.categories` | `Array` | 对比矩阵分组，每组含 `name` 与 `items`。 |
-| `faqs` | `Array<{question, answer, defaultOpen}>` | 常见问题；`answer` 支持 HTML。 |
-| `cta` | `{title, description, buttonText, buttonLink, secondaryText, secondaryLink}` | 底部行动号召横幅；后两个为可选次按钮。 |
-| `footer.copyright` | `string` | 版权文案（底部条左侧）。 |
-| `footer.tagline` | `string` | 品牌一句话简介（品牌区下方）。 |
-| `footer.columns` | `Array<{title, links}>` | 页脚链接列，每列含标题与若干链接。 |
-| `footer.socials` | `Array<{icon, label, href}>` | 社交图标（Emoji 占位），底部条右侧。 |
-| `footer.links` | `Array<{label, href}>` | 最底部的法律/次要链接（可选）。 |
+| `billing.savingText` | `(string\|Object)` | 年付时展示的「省 X%」提示（含 `{rate}` 占位），支持本地化对象。 |
+| `plans` | `Array` | 套餐列表，见下表（各文本字段均支持本地化对象）。 |
+| `features.categories` | `Array` | 对比矩阵分组，每组含 `name` 与 `items`（`name`/`values` 支持本地化对象）。 |
+| `faqs` | `Array<{question, answer, defaultOpen}>` | 常见问题；`question`/`answer` 支持本地化对象，`answer` 支持 HTML。 |
+| `cta` | `{title, description, buttonText, buttonLink, secondaryText, secondaryLink}` | 底部行动号召横幅；后两个为可选次按钮，文本字段支持本地化对象。 |
+| `footer.copyright` | `(string\|Object)` | 版权文案（底部条左侧），支持本地化对象。 |
+| `footer.tagline` | `(string\|Object)` | 品牌一句话简介（品牌区下方），支持本地化对象。 |
+| `footer.columns` | `Array<{title, links}>` | 页脚链接列，每列含标题与若干链接（标题/链接文案支持本地化对象）。 |
+| `footer.socials` | `Array<{icon, label, href}>` | 社交图标（Emoji 占位），底部条右侧；`label` 支持本地化对象。 |
+| `footer.links` | `Array<{label, href}>` | 最底部的法律/次要链接（可选），链接文案支持本地化对象。 |
+
+> **★ 多语言写法（本地化对象）**：上表中类型为 `(string|Object)` 的字段，既可以直接写普通字符串（单语言时足够），也可以写成「本地化对象」来提供多语言：
+>
+> ```js
+> // 单语言：直接写字符串
+> name: '专业版'
+> // 多语言：写成对象，键为语言代码
+> name: { 'zh-CN': '专业版', 'en': 'Pro' }
+> ```
+>
+> `main.js` 的 `getLocalized()` 助手会按「当前语言」自动取出对应文案；若某语言缺失，回退到默认语言 `zh-CN`，再回退到对象的第一个值。这样你**只做单语言时完全不用关心多语言**；需要时把字段改成对象、并在 `i18n` 里补框架文案即可。`✓` / `✗` 与纯数字与语言无关，无需本地化。
 
 ### `plans` 数组每一项
 
@@ -238,6 +251,50 @@ navActions: {
 - 想改变**暗色配色本身**：改 `style.css` 中 `[data-theme='dark']` 下的变量（如 `--color-bg`、`--color-surface`、`--header-bg`）。
 - 想换**切换按钮图标**：改 `main.js` 中 `renderHeader()` 里 `.theme-toggle__icon` 的初始文案（☀️ / 🌙）。
 
+### 11. 双语（中 / 英）一键切换
+
+语言切换已内置：页面右上角按钮（显示「EN」/「中」）即时在中英间切换，选择记入 localStorage，下次访问自动沿用。
+
+**框架文案**（月付/年付/最受欢迎/功能/区块标题等）集中在 `config.js` 的 `i18n` 字典：
+
+```js
+i18n: {
+  'zh-CN': { monthly: '按月付费', popular: '最受欢迎', featureCol: '功能', /* … */ },
+  'en':    { monthly: 'Monthly',  popular: 'Most Popular', featureCol: 'Features', /* … */ },
+},
+```
+
+**业务文案**（套餐名、描述、卖点、对比项、FAQ、页脚等）用「本地化对象」写法即可，例如：
+
+```js
+plans: [
+  {
+    id: 'pro',
+    name: { 'zh-CN': '专业版', 'en': 'Pro' },
+    price: 39, currency: '¥', period: { 'zh-CN': '/月', 'en': '/mo' },
+    description: { 'zh-CN': '为独立开发者…', 'en': 'For solo developers…' },
+    features: [
+      { 'zh-CN': '5 名团队成员', 'en': '5 team members' },
+      { 'zh-CN': '50 GB 文件存储', 'en': '50 GB file storage' },
+    ],
+    ctaText: { 'zh-CN': '立即升级', 'en': 'Upgrade now' },
+    priceSuffix: '',
+    // …其他字段
+  },
+  // …其余套餐
+],
+```
+
+> **想加第三种语言？** 在 `i18n` 里加一份字典，并把需要翻译的字段写成 `{ 'zh-CN':…, 'en':…, 'ja':… }` 形式即可，`getLocalized()` 会自动识别。
+
+### 12. 移动端汉堡菜单
+
+汉堡菜单**无需任何配置**，< 640px 时顶部导航自动收起为 ☰ 图标，点击展开全宽下拉面板。
+
+- 想改触发断点：在 `style.css` 的 `@media (max-width: 639px)` 块中调整（注意同步修改基础样式里 `.plan-card` 等断点）。
+- 想换图标：改 `main.js` 中 `renderHeader()` 里 `.nav-toggle__icon` 的初始字符（如 `☰` → `≡`）。
+- 下拉面板样式在 `style.css` 的 `.header.is-nav-open .nav` 中，可改背景、间距、链接高度等。
+
 ---
 
 ## 六、通过 CSS 变量换肤
@@ -266,7 +323,7 @@ navActions: {
 
 ## 八、扩展预留说明
 
-- `language`：当前仅占位，未实现切换 UI。后续可结合多语言字典迭代。
+- `language` 与 `i18n`：已实现中英一键切换（见「常见修改」第 11 条），新增第三种语言只需在 `i18n` 加一份并在各字段补本地化对象即可。
 - `theme`：已实现一键切换（见「常见修改」第 10 条），无需再改。
 - 对比矩阵 `values` 采用字符串数组，可平滑扩展为对象（如 `{ supported: true, tip: '...' }`）以支持更丰富的单元格渲染。
 - 卡片与表格均为数据驱动渲染，新增字段只需在 `config.js` 与 `main.js` 对应的渲染函数里少量扩展即可。

@@ -276,6 +276,61 @@ body {
   transform: scale(0.95);
 }
 
+/* 语言切换按钮：与主题按钮同款圆形风格，但显示文字（EN / 中）。
+   用等宽感字体避免中英文切换时按钮宽度跳动。 */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.lang-toggle:hover {
+  border-color: var(--color-primary); /* 悬停时边框高亮为主色 */
+}
+
+.lang-toggle:active {
+  transform: scale(0.95);
+}
+
+/* 汉堡按钮（移动端展开/收起导航）：默认隐藏，仅在 <640px 由媒体查询显示。
+   用「☰」符号作图标，零额外元素、零资源。 */
+.nav-toggle {
+  display: none; /* 桌面端隐藏，避免与完整导航重复 */
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.nav-toggle:hover {
+  border-color: var(--color-primary);
+}
+
+.nav-toggle:active {
+  transform: scale(0.95);
+}
+
 /* ========================================
    4. 首屏 Hero + 计费切换
    ======================================== */
@@ -963,12 +1018,44 @@ body,
    ======================================== */
 
 /* ---- 手机：< 640px ----
-   隐藏顶部导航链接，避免与「登录 / 免费试用 / 主题切换」挤占同一行导致溢出。
-   品牌与右侧操作按钮保留。若需完整移动导航，可在此扩展为汉堡菜单。
-   卡片仍为纵向堆叠（由基础 .plan-card flex:1 1 100% 决定）。 */
+   顶部导航默认收起为「汉堡菜单」：导航链接隐藏，显示汉堡按钮；
+   点击汉堡后在页头下方展开一个全宽下拉面板（.header.is-nav-open .nav）。
+   品牌与右侧操作按钮（登录/免费试用/主题/语言/汉堡）保留在栏内。 */
 @media (max-width: 639px) {
+  /* 显示汉堡按钮，隐藏常态导航 */
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  /* 导航默认隐藏（收起状态） */
   .nav {
     display: none;
+  }
+
+  /* 展开态：导航作为页头下方的全宽下拉面板 */
+  .header.is-nav-open .nav {
+    display: flex;
+    flex-direction: column;     /* 链接纵向堆叠 */
+    align-items: stretch;       /* 链接占满面板宽度，点击区域更大 */
+    gap: var(--space-1);
+    /* 绝对定位在页头正下方，覆盖在内容之上 */
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background-color: var(--header-bg); /* 用变量：暗色模式自动变深 */
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-3) var(--space-5);
+    z-index: 60;                /* 置于内容之上 */
+  }
+
+  /* 下拉面板内的链接样式：加大点击高度、左对齐 */
+  .header.is-nav-open .nav__link {
+    padding: var(--space-3) 0;
+    font-size: var(--font-size-base);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .header__right {
