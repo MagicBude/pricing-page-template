@@ -31,6 +31,7 @@
  *   hero: { badge: string, title: string, subtitle: string, titleAccent: string },
  *   brand: { name: string, logo: string },
  *   nav: Array<{ label: string, href: string }>,
+ *   navActions: { loginText: string, loginLink: string, trialText: string, trialLink: string },
  *   billing: { monthlyLabel: string, yearlyLabel: string, discountRate: number, savingText: string },
  *   plans: Array<{
  *     id: string, name: string, price: number, currency: string, period: string,
@@ -56,16 +57,17 @@
  */
 const PRICING_DATA = {
   /* ------------------------------------------------------------------ */
-  /* ① 扩展预留字段（当前版本不实现具体切换，但保留以便后续迭代）          */
+  /* ① 扩展字段：主题（已支持一键切换）与多语言（预留）                    */
   /* ------------------------------------------------------------------ */
 
   /**
-   * 主题模式开关（预留）。
-   * 当前版本仅提供「亮色 / 暗色」两套 CSS 变量定义在 style.css 中，
-   * 并未实现运行时切换。后续若要做主题切换，可让 main.js 读取本字段，
-   * 给 <html> 元素设置 data-theme="dark" 即可启用暗色变量。
+   * 主题模式（初始 / 默认主题）。
+   * 现已实现「运行时切换」：页面右上角有主题切换按钮，点击即在「亮色 / 暗色」
+   * 间切换，并把用户选择记入 localStorage，下次访问自动沿用。
+   * 本字段作为「初始默认值」——用户尚未手动切换时按它显示；
+   * 设为 "auto" 则跟随系统配色（prefers-color-scheme: dark）。
    * @type {string}
-   * @example "light" | "dark"
+   * @example "light" | "dark" | "auto"
    */
   theme: 'light',
 
@@ -77,6 +79,31 @@ const PRICING_DATA = {
    * @example "zh-CN" | "en-US"
    */
   language: 'zh-CN',
+
+  /* ------------------------------------------------------------------ */
+  /* ①-a 导航栏右侧操作按钮（登录 + 免费试用）                           */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * 导航栏右上角的操作按钮。这是 SaaS 落地页常见的「主转化入口」组合：
+   * 左侧为低调的「登录」文字链接，右侧为强调的「免费试用」实心按钮。
+   * 两个文案与链接均可在此修改，不影响其它代码；若不需要可整体删去本块。
+   * @type {{ loginText: string, loginLink: string, trialText: string, trialLink: string }}
+   * @example {
+   *   loginText: "登录", loginLink: "#login",
+   *   trialText: "免费试用", trialLink: "#trial"
+   * }
+   */
+  navActions: {
+    /** 登录按钮文案 @type {string} @example "登录" */
+    loginText: '登录',
+    /** 登录按钮链接（可用真实登录页地址） @type {string} @example "#login" */
+    loginLink: '#login',
+    /** 免费试用按钮文案 @type {string} @example "免费试用" */
+    trialText: '免费试用',
+    /** 免费试用按钮链接（可用真实注册页地址） @type {string} @example "#trial" */
+    trialLink: '#trial',
+  },
 
   /* ------------------------------------------------------------------ */
   /* ①-b 首屏 Hero 文案（数据驱动，便于统一修改）                        */

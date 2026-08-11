@@ -82,10 +82,11 @@ function createElement(tag, attributes = {}, text = '') {
  * ========================================================================== */
 
 /**
- * 渲染页头（品牌 Logo + 名称 + 导航菜单）。
- * 导航项通过循环配置数组生成，href 指向对应 section 的 id。
+ * 渲染页头（品牌 Logo + 名称 + 导航菜单 + 右侧操作按钮 + 主题切换）。
+ * 结构：品牌在左；右侧容器（header__right）内依次放置「导航链接、操作按钮、
+ * 主题切换按钮」。导航项通过循环配置数组生成，href 指向对应 section 的 id。
  *
- * @description 根据 PRICING_DATA.brand 与 PRICING_DATA.nav 生成页头
+ * @description 根据 PRICING_DATA.brand / nav / navActions 生成页头
  * @returns {void}
  */
 function renderHeader() {
@@ -100,15 +101,42 @@ function renderHeader() {
   brand.appendChild(createElement('span', { class: 'brand__logo', 'aria-hidden': 'true' }, PRICING_DATA.brand.logo));
   brand.appendChild(createElement('span', { class: 'brand__name' }, PRICING_DATA.brand.name));
 
+  // 右侧容器：导航 + 操作按钮 + 主题切换，整体靠右排列
+  const right = createElement('div', { class: 'header__right' });
+
   // 导航区：由 nav 数组映射生成 <a> 链接
   const nav = createElement('nav', { class: 'nav', 'aria-label': '主导航' });
   PRICING_DATA.nav.forEach((item) => {
     nav.appendChild(createElement('a', { class: 'nav__link', href: item.href }, item.label));
   });
+  right.appendChild(nav);
 
-  // 组装：品牌在左，导航在右
+  // 操作按钮组：登录（文字）+ 免费试用（实心），从 navActions 读取
+  if (PRICING_DATA.navActions) {
+    const actions = createElement('div', { class: 'nav__actions' });
+    actions.appendChild(
+      createElement('a', { class: 'nav__login', href: PRICING_DATA.navActions.loginLink }, PRICING_DATA.navActions.loginText)
+    );
+    actions.appendChild(
+      createElement('a', { class: 'nav__trial', href: PRICING_DATA.navActions.trialLink }, PRICING_DATA.navActions.trialText)
+    );
+    right.appendChild(actions);
+  }
+
+  // 主题切换按钮：圆形图标按钮。图标初始用 ☀️，initTheme() 会按当前主题纠正。
+  // 绑定点击事件到 toggleTheme（见下方主题切换逻辑）。
+  const themeBtn = createElement('button', {
+    class: 'theme-toggle',
+    type: 'button',
+    'aria-label': '切换暗色模式',
+  });
+  themeBtn.appendChild(createElement('span', { class: 'theme-toggle__icon', 'aria-hidden': 'true' }, '☀️'));
+  themeBtn.addEventListener('click', toggleTheme);
+  right.appendChild(themeBtn);
+
+  // 组装：品牌在左，右侧容器在右
   inner.appendChild(brand);
-  inner.appendChild(nav);
+  inner.appendChild(right);
   header.appendChild(inner);
 }
 
@@ -650,6 +678,99 @@ function renderCtaAndFooter() {
 }
 
 /* ============================================================================
+ *  8.5 主题切换（亮色 / 暗色 一键切换）
+ * ========================================================================== */
+
+/**
+ * 当前主题状态。'light' 表示亮色，'dark' 表示暗色。
+ * 与 currentBilling 类似，这是主题相关的唯一状态源。
+ * @type {'light' | 'dark'}
+ */
+let currentTheme = 'light';
+
+/**
+ * 应用指定主题到页面，并同步切换按钮的图标与无障碍标签。
+ *
+ * 原理：暗色样式全部由 style.css 中 `[data-theme='dark']` 这组 CSS 变量覆盖实现。
+ * 因此「切换主题」本质只是给 <html> 元素设置 / 移除 data-theme 属性，
+ * 浏览器会自动改用对应的变量值（颜色、背景、边框等随之变化）。
+ *
+ * @description 把主题写到 <html data-theme> 并刷新切换按钮
+ * @param {'light' | 'dark'} theme 目标主题
+ * @returns {void}
+ */
+function applyTheme(theme) {
+  // 记录当前主题（状态源）
+  currentTheme = theme;
+
+  // 关键一步：给 <html> 设置 data-theme，触发 CSS 变量切换
+  document.documentElement.setAttribute('data-theme', theme);
+
+  // 同步切换按钮：暗色显示 🌙、亮色显示 ☀️，并改写无障碍标签说明「将切换到哪种模式」
+  const icon = document.querySelector('.theme-toggle__icon');
+  if (icon) {
+    icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+  }
+  const btn = document.querySelector('.theme-toggle');
+  if (btn) {
+    btn.setAttribute('aria-label', theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式');
+  }
+}
+
+/**
+ * 初始化主题：决定页面首次展示用「亮色还是暗色」。
+ *
+ * 优先级（为什么这样排）：
+ *   1. localStorage 中用户上次的手动选择（最尊重用户意愿）；
+ *   2. 配置 PRICING_DATA.theme：若为 "auto" 则跟随系统配色，否则直接用该值；
+ *   3. 兜底为亮色。
+ *
+ * @description 读取本地存储/配置，确定并应用初始主题
+ * @returns {void}
+ */
+function initTheme() {
+  // 尝试读取用户上次的手动选择（localStorage 在隐私模式等场景可能抛错，故包裹 try）
+  let saved = null;
+  try {
+    saved = localStorage.getItem('pricing-theme');
+  } catch (e) {
+    saved = null;
+  }
+
+  let theme;
+  if (saved === 'light' || saved === 'dark') {
+    // 1) 用户曾手动切换过，沿用其选择
+    theme = saved;
+  } else if (PRICING_DATA.theme === 'auto') {
+    // 2a) 配置为 auto：跟随系统配色偏好
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    theme = prefersDark ? 'dark' : 'light';
+  } else {
+    // 2b/3) 配置为具体值（light/dark），兜底亮色
+    theme = PRICING_DATA.theme === 'dark' ? 'dark' : 'light';
+  }
+
+  applyTheme(theme);
+}
+
+/**
+ * 主题切换按钮的点击事件处理：在亮/暗之间取反，并持久化选择。
+ *
+ * @description 切换主题并写入 localStorage
+ * @returns {void}
+ */
+function toggleTheme() {
+  const next = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  // 记住用户选择，下次访问自动沿用（同样包裹 try 以兼容异常环境）
+  try {
+    localStorage.setItem('pricing-theme', next);
+  } catch (e) {
+    /* 忽略持久化失败，不影响本次切换 */
+  }
+}
+
+/* ============================================================================
  *  9. 启动：DOM 就绪后统一渲染
  * ========================================================================== */
 
@@ -662,6 +783,7 @@ function renderCtaAndFooter() {
  */
 function init() {
   renderHeader();
+  initTheme(); // 页头渲染后再初始化主题（此时切换按钮已存在，可正确刷新图标）
   renderHero();
   renderPlans();
   renderCompareTable();

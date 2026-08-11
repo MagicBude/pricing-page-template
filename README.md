@@ -17,8 +17,9 @@
 - **多列页脚 + 社交图标**：标准 SaaS 页脚布局，含品牌简介、多个链接列与社交入口。
 - **CTA 双按钮**：主按钮 + 可选次按钮（如「预约演示」），纯 CSS 装饰光斑提升视觉层次。
 - **FAQ 手风琴**：平滑展开/收起，互斥折叠，`+` / `×` 图标反馈。
-- **主题可换肤**：`style.css` 中集中管理 CSS 变量，改一处即可整体换色；暗色模式变量已预留。
-- **扩展预留**：`config.js` 中含 `theme`、`language` 字段，方便后续做主题切换与多语言。
+- **导航操作按钮**：右上角「登录」+「免费试用」实心按钮（数据驱动，可改文案/链接）。
+- **主题一键切换（亮 / 暗）**：右上角按钮即时切换，选择记入 localStorage 自动沿用；暗色变量已完整定义。
+- **扩展预留**：`config.js` 中含 `language` 字段，方便后续做多语言。
 
 ---
 
@@ -70,8 +71,9 @@ pricing-template/
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `theme` | `string` | 主题模式预留（`light`/`dark`），当前未实现切换。 |
+| `theme` | `string` | 初始/默认主题：`light` / `dark` / `auto`（跟随系统）。页面右上角有切换按钮，用户手动选择会记入 localStorage。 |
 | `language` | `string` | 界面语言预留（`zh-CN` 等），方便后续多语言。 |
+| `navActions` | `{loginText, loginLink, trialText, trialLink}` | 导航栏右上角操作按钮（登录 + 免费试用）；不需要可整体删去本块。 |
 | `hero.badge` | `string` | 首屏标题上方的营销小标签（胶囊徽章）。 |
 | `hero.title` | `string` | 首屏主标题。 |
 | `hero.titleAccent` | `string` | 主标题中要做渐变高亮的关键词；留空则不高亮。 |
@@ -105,7 +107,6 @@ pricing-template/
 | `description` | `string` | 一句亮点描述。 |
 | `features` | `string[]` | 卡片上展示的核心卖点。 |
 | `meta` | `string` | 关键指标速览（如 `不限项目 · 20 成员`）；显示在价格下方，留空 `''` 不显示。允许用 `<b>` 强调数字。 |
-| `ctaText` | `string` | 按钮文案。 |
 | `ctaText` | `string` | 按钮文案。 |
 | `ctaLink` | `string` | 按钮链接（`#` 占位或真实地址）。 |
 | `popular` | `boolean` | 是否「最受欢迎」（显示徽章 + 高亮）。 |
@@ -214,6 +215,29 @@ footer: {
 
 配置 `cta.secondaryText` / `cta.secondaryLink` 即出现描边次按钮（如「预约演示」）；留空则不显示。
 
+### 9. 导航操作按钮（登录 / 免费试用）
+
+`navActions` 控制右上角的「登录」文字链接与「免费试用」实心按钮，可直接改文案与链接：
+
+```js
+navActions: {
+  loginText: '登录',
+  loginLink: '#login',     // 换成真实登录页地址
+  trialText: '免费试用',
+  trialLink: '#trial',     // 换成真实注册页地址
+},
+```
+
+不需要时，把整个 `navActions` 块删掉即可，页面会自动只剩导航与主题切换按钮。
+
+### 10. 主题一键切换（亮 / 暗）
+
+主题切换已内置：页面右上角圆形按钮即时在亮色/暗色间切换，选择记入浏览器 localStorage，下次访问自动沿用。
+
+- 想改变**默认主题**：改 `config.theme`。设为 `'auto'` 可跟随系统配色（`prefers-color-scheme: dark`）。
+- 想改变**暗色配色本身**：改 `style.css` 中 `[data-theme='dark']` 下的变量（如 `--color-bg`、`--color-surface`、`--header-bg`）。
+- 想换**切换按钮图标**：改 `main.js` 中 `renderHeader()` 里 `.theme-toggle__icon` 的初始文案（☀️ / 🌙）。
+
 ---
 
 ## 六、通过 CSS 变量换肤
@@ -228,7 +252,7 @@ footer: {
 }
 ```
 
-暗色模式变量已写在 `[data-theme='dark']` 选择器下。后续若要做切换按钮，只需在 `main.js` 中给 `<html>` 设置 `data-theme="dark"` 即可启用。
+暗色模式变量已写在 `[data-theme='dark']` 选择器下，由右上角切换按钮通过给 `<html>` 设置 `data-theme="dark"` 启用；其中 `--header-bg` 控制页头半透明背景，按需调整即可。
 
 ---
 
@@ -242,7 +266,8 @@ footer: {
 
 ## 八、扩展预留说明
 
-- `theme` / `language`：当前仅占位，未实现切换 UI。后续可结合 `data-theme` 与多语言字典迭代。
+- `language`：当前仅占位，未实现切换 UI。后续可结合多语言字典迭代。
+- `theme`：已实现一键切换（见「常见修改」第 10 条），无需再改。
 - 对比矩阵 `values` 采用字符串数组，可平滑扩展为对象（如 `{ supported: true, tip: '...' }`）以支持更丰富的单元格渲染。
 - 卡片与表格均为数据驱动渲染，新增字段只需在 `config.js` 与 `main.js` 对应的渲染函数里少量扩展即可。
 
